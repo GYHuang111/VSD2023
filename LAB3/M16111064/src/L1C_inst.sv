@@ -1,0 +1,588 @@
+//================================================
+// Auther:      Chen Yun-Ru (May)
+// Filename:    L1C_inst.sv
+// Description: L1 Cache for instruction
+// Version:     0.1
+//================================================
+`include "def.svh"
+module L1C_inst(
+  input clk,
+  input rst,
+  // Core to CPU wrapper
+  input [`DATA_BITS-1:0] core_addr,
+  input core_req,
+  input core_write,
+  input [`DATA_BITS-1:0] core_in,
+  input [`CACHE_TYPE_BITS-1:0] core_type,
+  // Mem to CPU wrapper
+  input [`DATA_BITS-1:0] I_out,
+  input I_wait,
+  // CPU wrapper to core
+  output logic [`DATA_BITS-1:0] core_out,
+  output logic core_wait,
+  // CPU wrapper to Mem
+  output logic I_req,
+  output logic [`DATA_BITS-1:0] I_addr,
+  output logic I_write,
+  output logic [`DATA_BITS-1:0] I_in,
+  output logic [`CACHE_TYPE_BITS-1:0] I_type
+);
+
+  logic [`CACHE_INDEX_BITS-1:0] index;
+  logic [`CACHE_DATA_BITS-1:0] DA_out;
+  logic [`CACHE_DATA_BITS-1:0] DA_in;
+  logic [`CACHE_WRITE_BITS-1:0] DA_write;
+  logic DA_read;
+  logic [`CACHE_TAG_BITS-1:0] TA_out;
+  logic [`CACHE_TAG_BITS-1:0] TA_in;
+  logic TA_write;
+  logic TA_read;
+  logic [`CACHE_LINES-1:0] valid;
+
+  //--------------- complete this part by yourself -----------------//
+  logic [2:0] cnt;
+  logic WaitStateCtrCarry;
+  logic HIT;
+  logic [`CACHE_DATA_BITS-1:0] DA_in_buffer;
+  logic [`CACHE_WRITE_BITS-1:0] DA_write_buffer;
+  logic [3:0] DA_write_control;
+//Control
+  logic [3:0] Cache_state;
+  logic [3:0] Cache_state_next;
+  
+  parameter IDLE_STATE		= 4'd0,
+			READ_STATE		= 4'd1,
+			READ_MISS_STATE	= 4'd2,
+			READ_SYS_STATE	= 4'd3,
+			READ_DATA_STATE	= 4'd4,
+			WRITE_STATE		= 4'd5,
+			WRITE_HIT_STATE	= 4'd6,
+			WRITE_MISS_STATE= 4'd7,
+			WRITE_SYS_STATE	= 4'd8,
+			WRITE_DATA_STATE= 4'd9,
+			READ_BUFFER_STATE= 4'd10,
+			READ_BUFFER_STATE2= 4'd11;
+			
+	
+always_ff @ (posedge clk or posedge rst) begin
+	if (rst) begin
+		Cache_state <= 4'd0;
+	end
+	else begin
+		Cache_state <= Cache_state_next;
+	end
+end
+
+  logic READ;
+  logic WRITE;
+  assign  READ	= ~core_write;
+  assign WRITE	=  core_write;
+
+always_comb  begin
+	case(Cache_state) 
+		IDLE_STATE:begin	//IDLE_STATE
+			if (core_req & READ) begin
+				Cache_state_next = READ_STATE;
+			end
+			else if (core_req & WRITE) begin
+				Cache_state_next = WRITE_STATE;
+			end
+			else begin
+				Cache_state_next = IDLE_STATE;
+			end
+		end
+		READ_STATE:begin	//READ_STATE
+			if (HIT) begin
+				Cache_state_next = IDLE_STATE;
+			end
+			else  begin //MISS
+				Cache_state_next = READ_MISS_STATE;
+			end
+		end
+		READ_MISS_STATE:begin	//READ_MISS_STATE
+			Cache_state_next = READ_SYS_STATE;
+		end
+		READ_SYS_STATE:begin	//READ_SYS_STATE
+			if (WaitStateCtrCarry) begin
+				Cache_state_next = READ_DATA_STATE;
+			end
+			else begin
+				Cache_state_next = READ_SYS_STATE;
+			end
+		end
+		READ_DATA_STATE:begin	//READ_DATA_STATE
+			Cache_state_next = READ_BUFFER_STATE;//Cache_state_next = IDLE_STATE;
+		end
+		READ_BUFFER_STATE:begin
+			Cache_state_next = READ_BUFFER_STATE2;
+		end
+		READ_BUFFER_STATE2:begin
+			Cache_state_next = IDLE_STATE;
+		end
+		WRITE_STATE:begin	//WRITE_STATE
+			if (HIT) begin
+				Cache_state_next = WRITE_HIT_STATE;
+			end
+			else begin //MISS
+				Cache_state_next = WRITE_MISS_STATE;
+			end
+		end
+		WRITE_HIT_STATE:begin	//WRITE_HIT_STATE
+			Cache_state_next = WRITE_SYS_STATE;
+		end
+		WRITE_MISS_STATE:begin	//WRITE_MISS_STATE
+			Cache_state_next = WRITE_SYS_STATE;
+		end
+		WRITE_SYS_STATE:begin	//WRITE_SYS_STATE
+			if (WaitStateCtrCarry) begin
+				Cache_state_next = WRITE_DATA_STATE;
+			end
+			else begin
+				Cache_state_next = WRITE_SYS_STATE;
+			end
+		end
+		WRITE_DATA_STATE:begin	//WRITE_DATA_STATE
+			if (I_wait) begin
+				Cache_state_next = WRITE_DATA_STATE;
+			end
+			else begin
+				Cache_state_next = IDLE_STATE;
+			end	
+		end
+		default:begin
+			Cache_state_next = IDLE_STATE;
+		end
+	endcase
+end
+
+logic [63:0] Instr_Cache_Hit_count,Instr_Cache_Miss_count;
+always_ff @(posedge clk or posedge rst) begin
+	if (rst) begin
+		Instr_Cache_Hit_count <= 64'd0;
+		Instr_Cache_Miss_count <= 64'd0;
+	end
+	else if ((Cache_state==READ_STATE)||(Cache_state==WRITE_STATE)) begin
+		if (HIT) begin
+			Instr_Cache_Hit_count <= Instr_Cache_Hit_count + 64'd1;
+		end
+		else begin
+			Instr_Cache_Miss_count <= Instr_Cache_Miss_count + 64'd1;
+		end
+	end
+end
+
+//address decode
+logic [3:0] offset;
+assign TA_in = core_addr[31:10];
+assign index = core_addr[9:4];
+assign offset = core_addr[3:0];
+//Tag compare
+assign HIT = ((TA_in==TA_out) && valid[index])?1'd1:1'd0;
+assign MISS = ~HIT;
+// Valid Bit
+always_ff @ (posedge clk or posedge rst) begin
+	if (rst) begin
+		for(int i = 0; i < `CACHE_LINES; i = i + 1)
+                valid[i] <= 1'b0;
+	end
+	else if (~TA_write) begin
+		valid[index] <= 1'b1;
+	end
+end
+
+//Output
+always_comb begin	
+	case(Cache_state) 
+		IDLE_STATE:begin	//IDLE_STATE
+			//to CPU 
+			core_out	=	`DATA_BITS'd0;
+			if (core_req) begin // if CPU request then stop CPU
+				core_wait	=	1'd1;
+			end
+			else begin
+				core_wait	=	1'd0;
+			end
+			//to CPU_wrapper
+			I_req		=	1'd0;
+			I_addr		=	`DATA_BITS'd0;
+			I_write		=	1'd0;
+			I_in		=	`DATA_BITS'd0;
+			I_type		=	`CACHE_TYPE_BITS'd0;
+		end
+		READ_STATE:begin	//READ_STATE
+			if (HIT) begin
+				//to CPU 
+				case(offset[3:2])
+					2'd0:core_out	=	DA_out[31:0];
+					2'd1:core_out	=	DA_out[63:32];
+					2'd2:core_out	=	DA_out[95:64];
+					2'd3:core_out	=	DA_out[127:96];
+					default:core_out=	`DATA_BITS'd0;
+				endcase
+				core_wait	=	1'd0;
+				//to CPU_wrapper
+				I_req		=	1'd0;
+				I_addr		=	`DATA_BITS'd0;
+				I_write		=	1'd0;
+				I_in		=	`DATA_BITS'd0;
+				I_type		=	`CACHE_TYPE_BITS'd0;
+			end
+			else begin
+				//to CPU 
+				core_out	=	`DATA_BITS'd0;
+				core_wait	=	1'd1;
+				//to CPU_wrapper
+				I_req		=	1'd0;
+				I_addr		=	`DATA_BITS'd0;
+				I_write		=	1'd0;
+				I_in		=	`DATA_BITS'd0;
+				I_type		=	`CACHE_TYPE_BITS'd0;
+			end
+		end
+		READ_MISS_STATE:begin	//READ_MISS_STATE
+			//to CPU 
+			core_out	= 	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd1;
+			I_addr		=	{core_addr[31:4],4'd0};
+			I_write		=	1'd0;
+			I_in		=	`DATA_BITS'd0;
+			I_type		=	`CACHE_TYPE_BITS'd0;
+		end
+		READ_SYS_STATE:begin	//READ_SYS_STATE (AXI send data to cache)
+			//to CPU 
+			core_out	=	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd1;				//send request to Master for AXI
+			I_addr		=	{core_addr[31:4],4'd0};
+			I_write		=	1'd0;
+			I_in		=	`DATA_BITS'd0;
+			I_type		=	`CACHE_TYPE_BITS'd0;
+		end
+		READ_DATA_STATE:begin	//READ_DATA_STATE (aftr cacche get data ,cache give data to CPU)
+			//to CPU 
+			case(offset[3:2])
+					2'd0:core_out	=	DA_out[31:0];
+					2'd1:core_out	=	DA_out[63:32];
+					2'd2:core_out	=	DA_out[95:64];
+					2'd3:core_out	=	DA_out[127:96];
+					default:core_out=	`DATA_BITS'd0;
+				endcase
+			core_wait	=	1'd0;//1'd0
+			//to CPU_wrapper
+			I_req		=	1'd1;//0
+			I_addr		=	`DATA_BITS'd0;
+			I_write		=	1'd0;
+			I_in		=	`DATA_BITS'd0;
+			I_type		=	`CACHE_TYPE_BITS'd0;
+		end
+		READ_BUFFER_STATE:begin
+			//to CPU 
+			core_out	=	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd0;				
+			I_addr		=	{core_addr[31:4],4'd0};
+			I_write		=	1'd0;
+			I_in		=	`DATA_BITS'd0;
+			I_type		=	`CACHE_TYPE_BITS'd0;
+		end
+		READ_BUFFER_STATE2:begin
+			core_out	=	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd0;				
+			I_addr		=	{core_addr[31:4],4'd0};
+			I_write		=	1'd0;
+			I_in		=	`DATA_BITS'd0;
+			I_type		=	`CACHE_TYPE_BITS'd0;
+		end
+		WRITE_STATE:begin	//WRITE_STATE
+			//to CPU 
+			core_out	=	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd0;
+			I_addr		=	core_addr;
+			I_write		=	1'd1;
+			I_in		=	core_in;
+			I_type		=	core_type;
+		end
+		WRITE_HIT_STATE:begin	//WRITE_HIT_STATE
+			//to CPU 
+			core_out	=	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd0;
+			I_addr		=	core_addr;
+			I_write		=	1'd1;
+			I_in		=	core_in;
+			I_type		=	core_type;
+		end
+		WRITE_MISS_STATE:begin	//WRITE_MISS_STATE
+			//to CPU 
+			core_out	= 	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd0;
+			I_addr		=	core_addr;
+			I_write		=	1'd1;
+			I_in		=	core_in;
+			I_type		=	core_type;
+		end
+		WRITE_SYS_STATE:begin	//WRITE_SYS_STATE
+			//to CPU 
+			core_out	=	`DATA_BITS'd0;
+			core_wait	=	1'd1;
+			//to CPU_wrapper
+			I_req		=	1'd0;
+			I_addr		=	core_addr;
+			I_write		=	1'd1;
+			I_in		=	core_in;
+			I_type		=	core_type;
+		end
+		WRITE_DATA_STATE:begin	//WRITE_DATA_STATE (write data to Master for AXI)
+			//to CPU 
+			core_out	= 	`DATA_BITS'd0;
+			core_wait	=	I_wait;
+			//to CPU_wrapper
+			I_req		=	1'd1;	//start request to master
+			I_addr		=	core_addr;
+			I_write		=	1'd1;
+			I_in		=	core_in;
+			I_type		=	core_type;
+		end
+		default:begin
+			//to CPU 
+			core_out	= 	`DATA_BITS'd0;
+			core_wait	=	1'd0;
+			//to CPU_wrapper
+			I_req		=	1'd0;
+			I_addr		=	`DATA_BITS'd0;
+			I_write		=	1'd0;
+			I_in		=	`DATA_BITS'd0;
+			I_type		=	`CACHE_TYPE_BITS'd0;
+		end
+	endcase
+end
+// internal signal control
+always_comb begin
+	case(Cache_state) 
+		IDLE_STATE:begin	//IDLE_STATE
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;//0
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;
+		end
+		READ_STATE:begin	//READ_STATE(suggest be hit)
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;		//enable read data array
+		end
+		READ_MISS_STATE:begin	//READ_MISS_STATE
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;		//enable read data array
+		end
+		READ_SYS_STATE:begin	//READ_SYS_STATE (AXI send data to cache)
+			if (WaitStateCtrCarry) begin
+				TA_write	=	1'd0; //active low(write tag)
+				TA_read		=	1'd1; //active high
+				
+				DA_in		=	DA_in_buffer;
+				DA_write	=	`CACHE_WRITE_BITS'h0;//DA_write_buffer
+				DA_read		=	1'd0;
+			end
+			else begin
+				TA_write	=	1'd1; //active low
+				TA_read		=	1'd1; //active high
+				/*
+				case(cnt)
+					3'd0:DA_in[31:0] 	=	D_out;
+					3'd1:DA_in[63:32] 	=	D_out;
+					3'd2:DA_in[95:64] 	=	D_out;
+					3'd3:DA_in[127:96] 	=	D_out;
+					default:DA_in[31:0] =	32'd0;
+				endcase
+				*/
+				DA_in		=	`CACHE_DATA_BITS'd0;
+				DA_write	=	`CACHE_WRITE_BITS'hffff;//active low
+				DA_read		=	1'd1;//active high
+			end
+		end
+		READ_DATA_STATE:begin	//READ_DATA_STATE (aftr cacche get data ,cache give data to CPU)
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;		//enable read data array
+		end
+		READ_BUFFER_STATE:begin
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;
+		end
+		READ_BUFFER_STATE2:begin
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;
+		end
+		WRITE_STATE:begin	//WRITE_STATE
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;		//enable read data array
+		end
+		WRITE_HIT_STATE:begin	//WRITE_HIT_STATE(write tag&data array)
+			TA_write	=	1'd0;		//enable write tag array
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	DA_in_buffer;
+			DA_write	=	DA_write_buffer;
+			DA_read		=	1'd1;		//enable read data array
+		end
+		WRITE_MISS_STATE:begin	//WRITE_MISS_STATE(don't write tag&data array)
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;		//enable read data array
+		end
+		WRITE_SYS_STATE:begin	//WRITE_SYS_STATE
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;		//enable read data array
+		end
+		WRITE_DATA_STATE:begin	//WRITE_DATA_STATE (write data to Master for AXI)
+			TA_write	=	1'd1;
+			TA_read		=	1'd1;		//enable read tag array
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd0;		//disable read data array
+		end
+		default:begin
+			TA_write	=	1'd1;
+			TA_read		=	1'd0;
+			
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			DA_read		=	1'd1;
+		end
+	endcase
+end
+//
+
+always_ff @ (posedge clk or posedge rst) begin
+	if (rst) begin
+		DA_in_buffer <= `CACHE_DATA_BITS'd0;
+		DA_write_buffer <= `CACHE_WRITE_BITS'hffff;
+	end
+	else if (Cache_state == READ_SYS_STATE && ~WaitStateCtrCarry && cnt!=3'd0 && ~I_wait)begin//else if (Cache_state == READ_SYS_STATE && ~WaitStateCtrCarry)begin
+		DA_in_buffer <= {I_out,DA_in_buffer[`CACHE_DATA_BITS-1:32]};
+		DA_write_buffer <= {DA_write_control,DA_write_buffer[`CACHE_WRITE_BITS-1:4]};
+	end
+	else if (Cache_state == WRITE_STATE ) begin
+		case(offset[3:2])
+			2'd0:begin
+				DA_in_buffer <= {96'd0,I_out};
+				DA_write_buffer <= {12'hfff,DA_write_control};
+			end
+			2'd1:begin
+				DA_in_buffer <= {64'd0,I_out,32'd0};
+				DA_write_buffer <= {8'hff,DA_write_control,4'hf};
+			end
+			2'd2:begin
+				DA_in_buffer <= {32'd0,I_out,64'd0};
+				DA_write_buffer <= {4'hf,DA_write_control,8'hff};
+			end
+			default:begin //2'd3
+				DA_in_buffer <= {I_out,96'd0};
+				DA_write_buffer <= {DA_write_control,12'hfff};
+			end
+		endcase
+	end
+end
+//counter
+
+assign WaitStateCtrCarry = (cnt == 3'd5)?1'd1:1'd0;//4->7 //cnt 5to6
+assign cnt_rst = ((Cache_state==READ_MISS_STATE)||(Cache_state==WRITE_MISS_STATE));
+always_ff @ (posedge clk or posedge rst) begin
+	if (rst) 
+		cnt <= 3'd0;
+	else if (Cache_state == READ_MISS_STATE) //cnt == 3'd4
+		cnt <= 3'd0;
+	else 
+		cnt <= cnt + 3'd1;
+end
+//DA_write_control
+
+always_comb begin
+	case(core_type)
+		`CACHE_BYTE,`CACHE_BYTE_U:begin
+			case(offset[1:0])
+				2'd0:DA_write_control = 4'b1110;
+				2'd1:DA_write_control = 4'b1101;
+				2'd2:DA_write_control = 4'b1011;
+				2'd3:DA_write_control = 4'b0111;
+			endcase			
+		end
+		`CACHE_HWORD,`CACHE_HWORD_U:begin
+			case(offset[1])
+				2'd0:DA_write_control = 4'b1100;
+				2'd1:DA_write_control = 4'b0011;
+			endcase			 
+		end
+		`CACHE_WORD:begin
+			DA_write_control = 4'b0000;
+		end
+		default:begin
+			DA_write_control = 4'b1111;
+		end
+	endcase
+end
+  data_array_wrapper DA(
+    .A(index),
+    .DO(DA_out),
+    .DI(DA_in),
+    .CK(clk),
+    .WEB(DA_write),
+    .OE(DA_read),
+    .CS(1'b1)
+  );
+   
+  tag_array_wrapper  TA(
+    .A(index),
+    .DO(TA_out),
+    .DI(TA_in),
+    .CK(clk),
+    .WEB(TA_write),
+    .OE(TA_read),
+    .CS(1'b1)
+  );
+
+endmodule
+

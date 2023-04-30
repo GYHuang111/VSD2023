@@ -1,0 +1,175 @@
+//================================================
+// Auther:      Hsieh Hsien-Hua (Henry)
+// Filename:    sensor_ctrl.sv
+// Description: High speed sensor controller
+// Version:     0.1
+//================================================
+module WDT(
+  // System 
+  input clk,
+  input rst,
+  // WDT
+  input clk2,
+  input rst2,
+  // Core inputs
+  input WDEN,
+  input WDLIVE,
+  input [31:0] WTOCNT,
+  // WDT outputs
+  output logic WTO
+);
+
+  logic [31:0] counter;
+  logic rst_syn;
+  
+  logic WDEN_1st_stage;
+  logic WDLIVE_1st_stage;
+  logic [31:0] WTOCNT_1st_stage;
+  logic WDEN_2nd_stage;
+  logic WDLIVE_2nd_stage;
+  logic [31:0] WTOCNT_2nd_stage;
+
+  logic [31:0] WTOCNT_3rd_stage;
+  logic [31:0] WTOCNT_4th_stage;
+  logic [31:0] WTOCNT_5th_stage;
+  
+  logic update;
+  logic [31:0] WTOCNT_update;
+logic WDEN_update;
+logic WDLIVE_update;
+/*
+	sync_async_reset sar (
+	.clock(clk2),
+	.reset(rst),
+	.reset_syn(rst_syn)
+	);
+  logic reset_total;
+  assign reset_total = rst_syn|rst2;
+*/
+logic [31:0] WTOCNT_graycode;
+////////////////bunary to gray code encoding////////////////
+/*
+always_comb begin
+	WTOCNT_graycode = WTOCNT ^ (WTOCNT>>1);	
+end
+*/
+////////////////gray code to binary decoding////////////////
+/*
+logic [31:0] WTOCNT_update_binary;
+generate genvar i;
+	for (i=0 ; i<32 ; i=i+1) begin
+		assign WTOCNT_update_binary[i] = ^WTOCNT_update[31: i]; 
+	end
+endgenerate
+*/
+
+  always_ff@(posedge clk2)
+  begin
+    if (rst2)
+      counter <= 32'd0;
+    else if (WDLIVE_update) // rst2 edit
+      counter <= 32'd0;
+	else if (WTO) // rst2
+      counter <= 32'd0;	  
+    else if (WDEN_update) //enable counting
+      counter <= counter + 32'b1;
+  end
+  logic counter_exceed;
+logic [31:0] WTOCNT_delay;
+logic WDEN_delay;
+logic WDLIVE_delay;
+logic [2:0] cont;
+
+  assign counter_exceed = (counter >= WTOCNT_update) && WDEN_update;//edit here
+  always_ff@(posedge clk2)
+  begin
+    if (rst2)
+      WTO <= 1'b0;
+    else if (WDLIVE_update)
+      WTO <= 1'b0;
+	else if (WTO)
+	  WTO <= 1'b0;
+    else if ((counter >= WTOCNT_update) && WDEN_update)
+      WTO <= 1'b1;
+  end
+  
+  always_ff@(posedge clk) begin
+	if (rst) begin
+		cont <= 3'd0;
+		WTOCNT_delay <= 32'd0;
+		WDEN_delay <= 1'd0;
+		WDLIVE_delay <= 1'd0;
+	end
+	else if (cont == 3'b111) begin
+		cont <= 3'd0;
+		WTOCNT_delay <= WTOCNT;
+		WDEN_delay <= WDEN;
+		WDLIVE_delay <= WDLIVE;
+	end
+	else begin
+		cont <= cont + 3'd1;
+	end
+  end
+  always_ff@(posedge clk2) begin //meta stable
+	  if (rst2) begin
+			WDEN_1st_stage <= 1'd0;
+			WDLIVE_1st_stage <= 1'd0;
+			WTOCNT_1st_stage <= 32'd0;
+			WDEN_2nd_stage <= 1'd0;
+			WDLIVE_2nd_stage <= 1'd0;
+			WTOCNT_2nd_stage <= 32'd0;
+			WTOCNT_3rd_stage <= 32'd0;
+			WTOCNT_4th_stage <= 32'd0;
+			WTOCNT_update <= 32'd0;
+			WDEN_update <= 1'd0;
+			WDLIVE_update <= 1'd0;
+			
+	  end
+	  else begin
+			WDEN_1st_stage <= WDEN_delay;
+			WDLIVE_1st_stage <= WDLIVE_delay;
+			WTOCNT_1st_stage <= WTOCNT_delay;
+			WDEN_2nd_stage <= WDEN_1st_stage;
+			WDEN_update <= WDEN_2nd_stage;
+			WDLIVE_2nd_stage <= WDLIVE_1st_stage;
+			WDLIVE_update <= WDLIVE_2nd_stage;
+			WTOCNT_2nd_stage <= WTOCNT_1st_stage;
+			WTOCNT_update <= WTOCNT_2nd_stage;
+			//WTOCNT_4th_stage <= WTOCNT_3rd_stage;
+			//WTOCNT_update <= WTOCNT_4th_stage;
+	  end
+  end
+  
+  //assign update = (WTOCNT_4th_stage == WTOCNT_5th_stage)?1'd1:1'd0; //if WTOCNT stable then updata
+  /*always_ff@(posedge clk2) begin //meta stable
+	  if (rst2) begin
+		WTOCNT_update <= 32'd0;			
+	  end
+	  else if (update) begin
+		WTOCNT_update <= WTOCNT_5th_stage;
+	  end
+  end*/
+endmodule
+
+/*
+module sync_async_reset(clock,reset,reset_syn);
+ 
+    input clock, reset;
+    output logic reset_syn;
+ 
+    logic rst_1, rst_2;
+ 
+    always @(posedge clock) begin
+        if(reset) begin
+			rst_1 <= 1'b1;
+            rst_2 <= 1'b1;		
+        end
+        else begin
+			rst_1 <= 1'b0;
+			rst_2 <= rst_1;		
+		end
+    end
+	
+	assign reset_syn = rst_2;			
+    
+endmodule							*/

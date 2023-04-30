@@ -1,0 +1,20 @@
+ncverilog: 15.20-s084: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+TOOL:	ncverilog	15.20-s084: Started on Sep 16, 2022 at 10:59:04 CST
+ncverilog
+	top.sv
+	-c
+	-sv
+file: top.sv
+	module worklib.EXE_MEM_register:sv
+		errors: 0, warnings: 0
+		Caching library 'worklib' ....... Done
+	Elaborating the design hierarchy:
+		Caching library 'worklib' ....... Done
+  SRAM i_SRAM (
+            |
+ncelab: *E,CUVMUR (./SRAM_wrapper.sv,11|12): instance 'top.IM1@SRAM_wrapper<module>.i_SRAM' of design unit 'SRAM' is unresolved in 'worklib.SRAM_wrapper:sv'.
+  SRAM i_SRAM (
+            |
+ncelab: *E,CUVMUR (./SRAM_wrapper.sv,11|12): instance 'top.DM1@SRAM_wrapper<module>.i_SRAM' of design unit 'SRAM' is unresolved in 'worklib.SRAM_wrapper:sv'.
+ncverilog: *E,ELBERR: Error during elaboration (status 1), exiting.
+TOOL:	ncverilog	15.20-s084: Exiting on Sep 16, 2022 at 10:59:04 CST  (total: 00:00:00)

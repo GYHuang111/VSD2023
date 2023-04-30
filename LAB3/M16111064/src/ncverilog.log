@@ -1,0 +1,267 @@
+ncverilog: 15.20-s084: (c) Copyright 1995-2020 Cadence Design Systems, Inc.
+TOOL:	ncverilog	15.20-s084: Started on Nov 18, 2022 at 17:53:48 CST
+ncverilog
+	L1C_data.sv
+	-c
+	+sv
+file: L1C_data.sv
+`include "def.svh"
+                 |
+ncvlog: *E,COFILX (L1C_data.sv,7|17): cannot open include file 'def.svh'.
+  input [`DATA_BITS-1:0] core_addr,
+                  |
+ncvlog: *E,NOTDIR (L1C_data.sv,12|18): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  input [`DATA_BITS-1:0] core_in,
+                  |
+ncvlog: *E,NOTDIR (L1C_data.sv,15|18): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  input [`CACHE_TYPE_BITS-1:0] core_type,
+                        |
+ncvlog: *E,NOTDIR (L1C_data.sv,16|24): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  input [`DATA_BITS-1:0] D_out,
+                  |
+ncvlog: *E,NOTDIR (L1C_data.sv,18|18): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  output logic [`DATA_BITS-1:0] core_out,
+                         |
+ncvlog: *E,NOTDIR (L1C_data.sv,21|25): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  output logic [`DATA_BITS-1:0] D_addr,
+                         |
+ncvlog: *E,NOTDIR (L1C_data.sv,25|25): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  output [`DATA_BITS-1:0] D_in,
+                   |
+ncvlog: *E,NOTDIR (L1C_data.sv,27|19): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  output [`CACHE_TYPE_BITS-1:0] D_type
+                         |
+ncvlog: *E,NOTDIR (L1C_data.sv,28|25): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  logic [`CACHE_INDEX_BITS-1:0] index; 		//used
+                         |
+ncvlog: *E,NOTDIR (L1C_data.sv,31|25): `CACHE_INDEX_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  logic [`CACHE_DATA_BITS-1:0] DA_out;		//128bit
+                        |
+ncvlog: *E,NOTDIR (L1C_data.sv,32|24): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  logic [`CACHE_DATA_BITS-1:0] DA_in;		//128bit
+                        |
+ncvlog: *E,NOTDIR (L1C_data.sv,33|24): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  logic [`CACHE_WRITE_BITS-1:0] DA_write;	
+                         |
+ncvlog: *E,NOTDIR (L1C_data.sv,34|25): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  logic [`CACHE_TAG_BITS-1:0] TA_out;
+                       |
+ncvlog: *E,NOTDIR (L1C_data.sv,36|23): `CACHE_TAG_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  logic [`CACHE_TAG_BITS-1:0] TA_in;
+                       |
+ncvlog: *E,NOTDIR (L1C_data.sv,37|23): `CACHE_TAG_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+  logic [`CACHE_LINES-1:0] valid;	//used
+                    |
+ncvlog: *E,NOTDIR (L1C_data.sv,40|20): `CACHE_LINES: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		valid <= `CACHE_LINES'd0;
+		                    |
+ncvlog: *E,NOTDIR (L1C_data.sv,155|22): `CACHE_LINES: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	=	`DATA_BITS'd0;
+			        	 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,167|23): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_addr		=	`DATA_BITS'd0;
+			      		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,176|22): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_in		=	`DATA_BITS'd0;
+			    		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,178|20): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_type		=	`CACHE_TYPE_BITS'd0;
+			      		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,179|28): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+					default:core_out=	`DATA_BITS'd0;
+					                 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,189|32): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				D_addr		=	`DATA_BITS'd0;
+				      		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,194|23): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				D_in		=	`DATA_BITS'd0;
+				    		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,196|21): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				D_type		=	`CACHE_TYPE_BITS'd0;
+				      		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,197|29): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				core_out	=	`DATA_BITS'd0;
+				        	 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,201|24): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				D_addr		=	`DATA_BITS'd0;
+				      		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,205|23): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				D_in		=	`DATA_BITS'd0;
+				    		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,207|21): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				D_type		=	`CACHE_TYPE_BITS'd0;
+				      		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,208|29): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	= 	`DATA_BITS'd0;
+			        	  	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,213|24): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_in		=	`DATA_BITS'd0;
+			    		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,219|20): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_type		=	`CACHE_TYPE_BITS'd0;
+			      		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,220|28): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	=	`DATA_BITS'd0;
+			        	 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,224|23): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_in		=	`DATA_BITS'd0;
+			    		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,230|20): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_type		=	`CACHE_TYPE_BITS'd0;
+			      		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,231|28): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+					default:core_out=	`DATA_BITS'd0;
+					                 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,240|32): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_addr		=	`DATA_BITS'd0;
+			      		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,245|22): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_in		=	`DATA_BITS'd0;
+			    		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,247|20): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_type		=	`CACHE_TYPE_BITS'd0;
+			      		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,248|28): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	=	`DATA_BITS'd0;
+			        	 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,252|23): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	=	`DATA_BITS'd0;
+			        	 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,263|23): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	= 	`DATA_BITS'd0;
+			        	  	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,274|24): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	=	`DATA_BITS'd0;
+			        	 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,285|23): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	= 	`DATA_BITS'd0;
+			        	  	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,296|24): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			core_out	= 	`DATA_BITS'd0;
+			        	  	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,307|24): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_addr		=	`DATA_BITS'd0;
+			      		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,311|22): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_in		=	`DATA_BITS'd0;
+			    		 	         |
+ncvlog: *E,NOTDIR (L1C_data.sv,313|20): `DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			D_type		=	`CACHE_TYPE_BITS'd0;
+			      		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,314|28): `CACHE_TYPE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,325|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,326|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,333|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,334|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,341|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,342|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				DA_in		=	`CACHE_DATA_BITS'd0;
+				     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,366|28): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+				DA_write	=	`CACHE_WRITE_BITS'hffff;//active low
+				        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,367|31): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,375|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,376|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,383|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,384|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,399|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,400|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,407|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,408|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_in		=	`CACHE_DATA_BITS'd0;
+			     		 	               |
+ncvlog: *E,NOTDIR (L1C_data.sv,415|27): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+			DA_write	=	`CACHE_WRITE_BITS'hffff;
+			        	 	                |
+ncvlog: *E,NOTDIR (L1C_data.sv,416|30): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+logic [`CACHE_DATA_BITS-1:0] DA_in_buffer;
+                      |
+ncvlog: *E,NOTDIR (L1C_data.sv,425|22): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+logic [`CACHE_WRITE_BITS-1:0] DA_write_buffer;
+                       |
+ncvlog: *E,NOTDIR (L1C_data.sv,426|23): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		DA_in_buffer <= `CACHE_DATA_BITS'd0;
+		                               |
+ncvlog: *E,NOTDIR (L1C_data.sv,429|33): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		DA_write_buffer <= `CACHE_WRITE_BITS'd0;
+		                                   |
+ncvlog: *E,NOTDIR (L1C_data.sv,430|37): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		DA_in_buffer <= {D_out,DA_in_buffer[`CACHE_DATA_BITS-1:32]};
+		                                                   |
+ncvlog: *E,NOTDIR (L1C_data.sv,433|53): `CACHE_DATA_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		DA_write_buffer <= {DA_write_control,DA_write_buffer[`CACHE_WRITE_BITS-1:4]};
+		                                                                     |
+ncvlog: *E,NOTDIR (L1C_data.sv,434|71): `CACHE_WRITE_BITS: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+always_ff @ (posedge clk or posedge rst) begin
+        |
+ncvlog: *E,EXPSMC (L1C_data.sv,460|8): expecting a semicolon (';') [6.1(IEEE)].
+		`CACHE_BYTE,`CACHE_BYTE_U:begin
+		          |
+ncvlog: *E,NOTDIR (L1C_data.sv,475|12): `CACHE_BYTE: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		`CACHE_BYTE,`CACHE_BYTE_U:begin
+		           |
+ncvlog: *E,ILLPRI (L1C_data.sv,475|13): illegal expression primary [4.2(IEEE)].
+		`CACHE_BYTE,`CACHE_BYTE_U:begin
+		                        |
+ncvlog: *E,NOTDIR (L1C_data.sv,475|26): `CACHE_BYTE_U: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		`CACHE_BYTE,`CACHE_BYTE_U:begin
+		                         |
+ncvlog: *E,ILLPRI (L1C_data.sv,475|27): illegal expression primary [4.2(IEEE)].
+		`CACHE_BYTE,`CACHE_BYTE_U:begin
+		                              |
+ncvlog: *E,ILLPRI (L1C_data.sv,475|32): illegal expression primary [4.2(IEEE)].
+		`CACHE_HWORD,`CACHE_HWORD_U:begin
+		           |
+ncvlog: *E,NOTDIR (L1C_data.sv,483|13): `CACHE_HWORD: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		`CACHE_HWORD,`CACHE_HWORD_U:begin
+		            |
+ncvlog: *E,NOTSTT (L1C_data.sv,483|14): expecting a statement [9(IEEE)].
+		`CACHE_HWORD,`CACHE_HWORD_U:begin
+		                          |
+ncvlog: *E,NOTDIR (L1C_data.sv,483|28): `CACHE_HWORD_U: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		`CACHE_WORD:begin
+		          |
+ncvlog: *E,NOTDIR (L1C_data.sv,489|12): `CACHE_WORD: not a recognized directive or macro [2.7.3][16.3.1][16(IEEE)].
+		`CACHE_WORD:begin
+		                |
+ncvlog: *E,EXPIDN (L1C_data.sv,489|18): expecting an identifier [SystemVerilog].
+		default:begin
+		      |
+ncvlog: *E,NOTSTT (L1C_data.sv,492|8): expecting a statement [9(IEEE)].
+	endcase
+	      |
+ncvlog: *E,NOTSTT (L1C_data.sv,495|7): expecting a statement [9(IEEE)].
+	module worklib.L1C_data:sv
+		errors: 84, warnings: 0
+ncvlog: *F,NOTOPL: no top-level unit found, must have recursive instances.
+ncverilog: *E,VLGERR: An error occurred during parsing.  Review the log file for errors with the code *E and fix those identified problems to proceed.  Exiting with code (status 2).
+TOOL:	ncverilog	15.20-s084: Exiting on Nov 18, 2022 at 17:53:48 CST  (total: 00:00:00)

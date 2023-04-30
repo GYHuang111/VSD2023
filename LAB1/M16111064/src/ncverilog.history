@@ -1,0 +1,3 @@
+s1(16Sep2022:10:52:40):  ncverilog top.sv -c -sv 
+s2(16Sep2022:10:53:18):  ncverilog top.sv -c -sv 
+s3(16Sep2022:10:59:04):  ncverilog top.sv -c -sv 
